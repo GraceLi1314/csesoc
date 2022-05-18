@@ -9,15 +9,15 @@ We will only test for courses inside conditions.json. We will also look over the
 code by eye.
 NOTE: We do not expect you to come up with a perfect solution. We are more interested
 in how you would approach a problem like this.
-"""
+""" 
 import json, re
-
-from numpy import require
-
+ 
 # NOTE: DO NOT EDIT conditions.json
 with open("./conditions.json") as f:
     CONDITIONS = json.load(f)
     f.close()
+
+count_or = 0
 
 def get_all_must_completed_course(requirements_list):
     ''''
@@ -26,6 +26,7 @@ def get_all_must_completed_course(requirements_list):
     '''
     pre_must_list = []  
     and_index = -1
+    global count_or
     while "and" in requirements_list:
         and_index = requirements_list.index("and")
         first_must = requirements_list[and_index - 1]
@@ -36,7 +37,8 @@ def get_all_must_completed_course(requirements_list):
             pre_must_list.append(second_must)  
         if "(" in first_must and ")" in second_must:
             pre_must_list.append(second_must)
-            pre_must_list.append(first_must)
+            pre_must_list.append(first_must) 
+            count_or += 2
         requirements_list.remove("and") 
 
     while "AND" in requirements_list:
@@ -48,8 +50,9 @@ def get_all_must_completed_course(requirements_list):
         if "(" not in second_must and ")" not in second_must: 
             pre_must_list.append(second_must)  
         if "(" in first_must and ")" in second_must:
-            pre_must_list.append(second_must)
-            pre_must_list.append(first_must)
+            pre_must_list.append(second_must.replace(")", ""))
+            pre_must_list.append(first_must.replace("(", "")) 
+            count_or += 2
         requirements_list.remove("AND") 
     return pre_must_list
     
@@ -87,7 +90,8 @@ def is_unlocked(courses_list, target_course):
                     pre_list.append(course) 
 
     requirements_list = prerequisites.split() 
-    count_or = prerequisites.count("OR")
+    global count_or
+    count_or += prerequisites.count("OR")
     count_or += prerequisites.count("or")  
 
     # get all the must-completed courses
@@ -96,14 +100,14 @@ def is_unlocked(courses_list, target_course):
     # if there is no specific prerequisites code, then check whether the number of units are met 
     if len(pre_list) == 0 and units != 0:  
         if len(courses_list) * 6 >= units:
-            return True  
-     
+            return True   
+
     for c in pre_list:
         if c not in courses_list:
             if count_or <= 0:
                 return False
-            count_or -= 1 
-    
+            count_or -= 1  
+
     for c in pre_must_list:
         if c not in courses_list:
             return False 
